@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Desfase Horario</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto+Mono:wght@400;700&family=Share+Tech+Mono&display=swap');
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #1a2a3a 0%, #0f1823 100%);
+            color: #ecf0f1;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .calculator-container {
+            background: linear-gradient(145deg, #2b3a4a, #1f2a35);
+            padding: 35px 45px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+            width: 420px;
+            max-width: 90%;
+            text-align: center;
+            border: 2px solid #00c2cb;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            margin: 20px 0;
+            backdrop-filter: blur(5px); /* Efecto de cristal para el contenedor */
+            -webkit-backdrop-filter: blur(5px); /* Para compatibilidad con Safari */
+        }
+
+        /* Efecto de fondo sutil tipo "rejilla" o "circuito" */
+        .calculator-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(0, 200, 200, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(150, 255, 100, 0.08) 0%, transparent 50%);
+            background-size: 150px 150px;
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .digital-clock {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8em; /* Tamaño de fuente fijo para todas las pantallas */
+            color: #d1f3ff; /* Color azul claro para simular brillo de pantalla */
+            background: rgba(13, 26, 38, 0.7); /* Fondo semi-transparente oscuro */
+            backdrop-filter: blur(10px); /* Efecto de cristal para el reloj */
+            -webkit-backdrop-filter: blur(10px); /* Para compatibilidad con Safari */
+            padding: 18px 0;
+            margin-bottom: 35px;
+            border-radius: 12px;
+            box-shadow: 
+                0 0 15px rgba(0, 194, 203, 0.5), /* Sombra exterior azul cian */
+                inset 0 0 20px rgba(0, 224, 255, 0.3), /* Sombra interior azul claro */
+                inset 0 0 30px rgba(43, 215, 224, 0.2); /* Otra sombra interior */
+            letter-spacing: 2px; /* Espaciado de letras fijo para todas las pantallas */
+            font-weight: 700;
+            border: 1px solid rgba(0, 194, 203, 0.6); /* Borde sutil cian */
+            text-shadow: 0 0 10px rgba(209, 243, 255, 0.8), 0 0 20px rgba(209, 243, 255, 0.5); /* Sombra de texto para brillo */
+            position: relative;
+            overflow: hidden;
+
+            width: auto; 
+            max-width: 100%; 
+            box-sizing: border-box; 
+        }
+
+        .app-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2em;
+            margin-bottom: 35px;
+            color: #00e0ff;
+            text-shadow: 0 0 15px rgba(0, 224, 255, 0.6), 0 0 8px rgba(0, 224, 255, 0.4);
+            font-weight: 700;
+        }
+
+        .input-section, .conversion-section {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #b3e0ff;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        label::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: #00e0ff; /* Cambiado a cian para consistencia */
+        }
+
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            justify-content: center;
+            background-color: rgba(26, 42, 58, 0.8); /* Fondo semi-transparente */
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 194, 203, 0.6);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+        }
+
+        .time-part {
+            width: 60px;
+            height: 60px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.8em;
+            text-align: center;
+            background-color: rgba(13, 26, 38, 0.9); /* Fondo oscuro casi opaco */
+            border: 2px solid #00c2cb;
+            border-radius: 8px;
+            color: #d1f3ff; /* Color de texto azul claro */
+            padding: 5px;
+            box-sizing: border-box;
+            transition: all 0.3s ease-in-out;
+            -moz-appearance: textfield;
+            outline: none;
+            box-shadow: inset 0 0 8px rgba(0, 194, 203, 0.3); /* Sombra interna azul sutil */
+        }
+
+        .time-part::-webkit-outer-spin-button,
+        .time-part::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .time-part:focus {
+            border-color: #00e0ff;
+            box-shadow: 0 0 20px rgba(0, 224, 255, 0.7), inset 0 0 10px rgba(0, 224, 255, 0.5);
+            background-color: #1a2a3a;
+            color: #00e0ff;
+        }
+
+        .time-input-group span {
+            font-size: 1.8em;
+            color: #b3e0ff;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+
+        .result-section, .conversion-section {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .time-display {
+            background-color: rgba(13, 26, 38, 0.7); /* Fondo semi-transparente oscuro */
+            backdrop-filter: blur(8px); /* Efecto de cristal para el display */
+            -webkit-backdrop-filter: blur(8px);
+            border: 2px solid #00c2cb;
+            border-radius: 10px;
+            padding: 18px 25px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            text-align: center;
+            color: #d1f3ff; /* Color azul claro para el resultado */
+            margin-top: 12px;
+            letter-spacing: 4px;
+            box-shadow: 
+                inset 0 0 15px rgba(0, 194, 203, 0.4), 
+                0 0 10px rgba(0, 194, 203, 0.2); /* Sombra de cristal */
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(209, 243, 255, 0.7);
+        }
+
+        .divider {
+            margin: 40px 0;
+            color: #7f8c8d;
+            font-size: 1.2em;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            opacity: 0.8;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 30%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #00c2cb, transparent);
+        }
+
+        .divider::before {
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .divider::after {
+            right: 0;
+            transform: translateY(-50%);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 25px;
+            margin-top: 35px;
+        }
+
+        button {
+            background: linear-gradient(145deg, #00c2cb, #009aa3);
+            color: #0f1823;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            flex-grow: 1;
+            box-shadow: 0 8px 20px rgba(0, 194, 203, 0.4);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            outline: none;
+        }
+
+        button:hover {
+            background: linear-gradient(145deg, #00e0ff, #00b0ba);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(0, 224, 255, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #clearBtn {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: #ecf0f1;
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        #clearBtn:hover {
+            background: linear-gradient(145deg, #ff6b5a, #d64d3d);
+            box-shadow: 0 12px 25px rgba(255, 107, 90, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="digital-clock" id="digitalClock"></div>
+
+        <h1 class="app-title">Sistema CIAT</h1>
+
+        <div class="input-section">
+            <label for="cctv_hh">Hora CCTV:</label>
+            <div class="time-input-group">
+                <input type="number" maxlength="2" class="time-part" id="cctv_hh" placeholder="HH" min="0" max="23"><span>:</span>
+                <input type="number" maxlength="2" class="time-part" id="cctv_mm" placeholder="MM" min="0" max="59"><span>:</span>
+                <input type="number" maxlength="2" class="time-part" id="cctv_ss" placeholder="SS" min="0" max="59">
+            </div>
+
+            <label for="ciat_hh">Hora CIAT:</label>
+            <div class="time-input-group">
+                <input type="number" maxlength="2" class="time-part" id="ciat_hh" placeholder="HH" min="0" max="23"><span>:</span>
+                <input type="number" maxlength="2" class="time-part" id="ciat_mm" placeholder="MM" min="0" max="59"><span>:</span>
+                <input type="number" maxlength="2" class="time-part" id="ciat_ss" placeholder="SS" min="0" max="59">
+            </div>
+        </div>
+
+        <div class="result-section">
+            <label>Desfase:</label>
+            <div class="time-display" id="desfaseResult">-- : -- : --</div>
+        </div>
+
+        <div class="divider">--- Convertir CIAT a CCTV ---</div>
+
+        <div class="conversion-section">
+            <label for="convert_ciat_hh">Hora CIAT a Convertir:</label>
+            <div class="time-input-group">
+                <input type="number" maxlength="2" class="time-part" id="convert_ciat_hh" placeholder="HH" min="0" max="23"><span>:</span>
+                <input type="number" maxlength="2" class="time-part" id="convert_ciat_mm" placeholder="MM" min="0" max="59"><span>:</span>
+                <input type="number" maxlength="2" class="time-part" id="convert_ciat_ss" placeholder="SS" min="0" max="59">
+            </div>
+
+            <label>Hora CCTV Resultante:</label>
+            <div class="time-display" id="cctvConversionResult">-- : -- : --</div>
+        </div>
+
+        <div class="button-group">
+            <button id="calculateBtn">CALCULAR</button>
+            <button id="clearBtn">BORRAR</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const allTimeInputs = document.querySelectorAll('.time-part');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const desfaseResult = document.getElementById('desfaseResult');
+            const cctvConversionResult = document.getElementById('cctvConversionResult');
+            const digitalClock = document.getElementById('digitalClock');
+
+            // Función para actualizar el reloj digital
+            function updateDigitalClock() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                digitalClock.textContent = `${hours} : ${minutes} : ${seconds}`;
+            }
+
+            // Actualizar el reloj cada segundo
+            setInterval(updateDigitalClock, 1000);
+            updateDigitalClock(); // Llamar una vez al inicio para evitar el retraso de 1 segundo
+
+            // Función para obtener el tiempo en segundos desde HH:MM:SS
+            function timeToSeconds(hh, mm, ss) {
+                return (parseInt(hh || 0) * 3600) + (parseInt(mm || 0) * 60) + parseInt(ss || 0);
+            }
+
+            // Función para convertir segundos a HH:MM:SS
+            function secondsToTime(totalSeconds) {
+                const sign = totalSeconds < 0 ? '-' : '';
+                totalSeconds = Math.abs(totalSeconds);
+
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                return `${sign}${String(hours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')}`;
+            }
+
+            // Función principal de cálculo
+            function performCalculation() {
+                const cctv_hh = document.getElementById('cctv_hh').value;
+                const cctv_mm = document.getElementById('cctv_mm').value;
+                const cctv_ss = document.getElementById('cctv_ss').value;
+
+                const ciat_hh = document.getElementById('ciat_hh').value;
+                const ciat_mm = document.getElementById('ciat_mm').value;
+                const ciat_ss = document.getElementById('ciat_ss').value;
+
+                const convert_ciat_hh = document.getElementById('convert_ciat_hh').value;
+                const convert_ciat_mm = document.getElementById('convert_ciat_mm').value;
+                const convert_ciat_ss = document.getElementById('convert_ciat_ss').value;
+
+                // Solo calcular desfase si ambos CCTV y CIAT tienen valores completos
+                if (cctv_hh.length === 2 && cctv_mm.length === 2 && cctv_ss.length === 2 &&
+                    ciat_hh.length === 2 && ciat_mm.length === 2 && ciat_ss.length === 2) {
+
+                    const cctvSeconds = timeToSeconds(cctv_hh, cctv_mm, cctv_ss);
+                    const ciatSeconds = timeToSeconds(ciat_hh, ciat_mm, ciat_ss);
+
+                    let desfaseSeconds = cctvSeconds - ciatSeconds;
+
+                    // Ajustar desfase para que sea en el rango de -12h a +12h si se cruza la medianoche
+                    if (desfaseSeconds > 12 * 3600) {
+                        desfaseSeconds -= 24 * 3600;
+                    } else if (desfaseSeconds < -12 * 3600) {
+                        desfaseSeconds += 24 * 3600;
+                    }
+
+                    desfaseResult.textContent = secondsToTime(desfaseSeconds);
+
+                    // Convertir CIAT a CCTV usando el desfase calculado si hay datos en "Hora CIAT a Convertir"
+                    if (convert_ciat_hh.length === 2 && convert_ciat_mm.length === 2 && convert_ciat_ss.length === 2) {
+                        const convertCiatSeconds = timeToSeconds(convert_ciat_hh, convert_ciat_mm, convert_ciat_ss);
+                        let cctvConvertedSeconds = convertCiatSeconds + desfaseSeconds;
+
+                        // Asegurar que el resultado esté en el rango de 24 horas (0 a 23:59:59)
+                        cctvConvertedSeconds = cctvConvertedSeconds % (24 * 3600);
+                        if (cctvConvertedSeconds < 0) {
+                            cctvConvertedSeconds += (24 * 3600);
+                        }
+                        cctvConversionResult.textContent = secondsToTime(cctvConvertedSeconds).replace('-', ''); // No mostrar signo negativo para horas del día
+                    } else {
+                        cctvConversionResult.textContent = "-- : -- : --";
+                    }
+                } else {
+                    desfaseResult.textContent = "-- : -- : --";
+                    cctvConversionResult.textContent = "-- : -- : --";
+                }
+            }
+
+            // Lógica para avanzar automáticamente entre los campos de tiempo y calcular
+            allTimeInputs.forEach((input, index) => {
+                input.addEventListener('input', (event) => {
+                    input.value = input.value.replace(/[^0-9]/g, '').slice(0, 2);
+
+                    // Validación de rangos para hh, mm, ss
+                    let value = parseInt(input.value);
+                    if (!isNaN(value)) {
+                        let max = 0;
+                        if (input.id.includes('_hh')) max = 23;
+                        else if (input.id.includes('_mm') || input.id.includes('_ss')) max = 59;
+
+                        if (value > max) {
+                            input.value = String(max).padStart(2, '0');
+                        }
+                    }
+
+                    if (input.value.length === 2) {
+                        // Advance to the next input only if there is a next input
+                        const nextInputInAll = allTimeInputs[index + 1];
+                        if (nextInputInAll) {
+                            nextInputInAll.focus();
+                        } else { // If it's the very last input, focus the calculate button
+                            calculateBtn.focus();
+                        }
+                        // Always try to perform calculation when any input is filled, 
+                        // the function itself checks if all necessary fields are complete.
+                        performCalculation();
+                    }
+                });
+            });
+
+            // Event listener para el botón CALCULAR (aún puede usarse si se prefiere)
+            calculateBtn.addEventListener('click', performCalculation);
+
+            // Event listener para el botón BORRAR
+            clearBtn.addEventListener('click', () => {
+                allTimeInputs.forEach(input => {
+                    input.value = '';
+                });
+                desfaseResult.textContent = "-- : -- : --";
+                cctvConversionResult.textContent = "-- : -- : --";
+                allTimeInputs[0].focus(); // Enfocar el primer campo después de borrar
+            });
+        });
+    </script>
+</body>
+</html>
